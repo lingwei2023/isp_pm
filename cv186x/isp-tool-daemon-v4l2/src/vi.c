@@ -413,6 +413,58 @@ static int set_dev_num(int fd, int dev_num)
 	return 0;
 }
 
+// #define AUTO_MIRROR_FLIP
+#ifdef AUTO_MIRROR_FLIP
+static int set_mirror_flip(int pipe, int mirror_flip)
+{
+	int fd = ViCtx[pipe].vi_fd;
+	struct v4l2_ext_controls val;
+	struct v4l2_ext_control control;
+
+	memset(&val, 0, sizeof(struct v4l2_ext_controls));
+
+	if (fd > 0) {
+		control.id = VI_IOCTL_SET_SNS_MIRROR_FLIP;
+		control.value = mirror_flip;
+		val.count = 1;
+		val.controls = &control;
+		if (ioctl(fd, VIDIOC_S_EXT_CTRLS, &val) < 0) {
+			printf("set mirror_flip fail !\n");
+			return -1;
+		} else {
+			printf("set mirror_flip:%d success\n", mirror_flip);
+		}
+	}
+
+	return 0;
+}
+
+static int get_bayer_format(int pipe, int *bayer_format)
+{
+	int fd = ViCtx[pipe].vi_fd;
+	struct v4l2_ext_controls val;
+	struct v4l2_ext_control control;
+	int data = -1;
+
+	memset(&val, 0, sizeof(struct v4l2_ext_controls));
+
+	if (fd > 0) {
+		control.id = VI_IOCTL_GET_SNS_BAYER_FORMAT;
+		control.ptr = &data;
+		val.count = 1;
+		val.controls = &control;
+		if (ioctl(fd, VIDIOC_G_EXT_CTRLS, &val) < 0) {
+			printf("get bayer_format fail !\n");
+			return -1;
+		} else {
+			printf("get bayer_format:%d success\n", data);
+			*bayer_format = data;
+		}
+	}
+
+	return 0;
+}
+#endif
 int start_vi(RTSP_CFG *p_rtsp_cfg)
 {
 	int pipe_num = p_rtsp_cfg->dev_num;
@@ -568,6 +620,33 @@ exit_get_yuv_frame:
 
 	ISP_LOG_INFO("P:%d,M:%d,ret:%d---\n", pipe, moduleId, ret);
 
+#ifdef AUTO_MIRROR_FLIP
+	static uint64_t count = 0;
+
+	if (ret >= 0) {
+		count++;
+		if (count % 50 == 0) {
+			int order = -1;
+			int bayer_format = -1;
+
+			order = rand() % 4;
+			set_mirror_flip(pipe, order);
+			get_bayer_format(pipe, &bayer_format);
+
+			if (bayer_format != -1) {
+				ISP_PUB_ATTR_S stPubAttr;
+
+				memset(&stPubAttr, 0, sizeof(ISP_PUB_ATTR_S));
+				CVI_ISP_GetPubAttr(pipe, &stPubAttr);
+				printf("enBayer: %d, bayer_format: %d\n",
+					stPubAttr.enBayer, bayer_format);
+
+				stPubAttr.enBayer = bayer_format;
+				CVI_ISP_SetPubAttr(pipe, &stPubAttr);
+			}
+		}
+	}
+#endif
 	return ret;
 }
 
