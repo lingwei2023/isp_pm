@@ -149,6 +149,11 @@ void *get_sensor_obj(int pipe)
 		pstSnsObj = &stSnsAR2020_Obj;
 		break;
 #endif
+#if defined(SENSOR_GPIXEL_GMAX2424)
+	case V4L2_GPIXEL_GMAX2424_MIPI_24M_18FPS_10BIT:
+		pstSnsObj = &stSnsGMAX2424_Obj;
+		break;
+#endif
 
 #if defined(SENSOR_OV_OS02D10)
 	case V4L2_OV_OS02D10_MIPI_2M_30FPS_10BIT:
@@ -695,6 +700,9 @@ static int get_isp_attr_by_sensor(int pipe, ISP_PUB_ATTR_S *pstPubAttr)
 	case V4L2_SMS_SC233HGS_MASTER_MIPI_2M_30FPS_4lane_10BIT:
 		pstPubAttr->f32FrameRate = 30;
 		break;
+	case V4L2_GPIXEL_GMAX2424_MIPI_24M_18FPS_10BIT:
+		pstPubAttr->f32FrameRate = 18;
+		break;
 	case V4L2_OV_OS04E10_MIPI_4M_30FPS_2L_10BIT_WDR2TO1:
 	case V4L2_OV_OS04E10_SLAVE_MIPI_4M_30FPS_2L_10BIT_WDR2TO1:
 		pstPubAttr->f32FrameRate = 20;
@@ -829,6 +837,7 @@ static int get_isp_attr_by_sensor(int pipe, ISP_PUB_ATTR_S *pstPubAttr)
 	case V4L2_OV_OS04E10_MIPI_4M_30FPS_2L_10BIT_WDR2TO1:
 	case V4L2_SMS_SC233HGS_MASTER_MIPI_2M_30FPS_4lane_10BIT:
 	case V4L2_SMS_SC233HGS_MASTER_MIPI_2M_60FPS_4lane_12BIT:
+	case V4L2_GPIXEL_GMAX2424_MIPI_24M_18FPS_10BIT:
 		pstPubAttr->u8EnableMaster = 1;
 		break;
 	default:
