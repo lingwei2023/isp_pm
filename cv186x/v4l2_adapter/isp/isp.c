@@ -154,6 +154,12 @@ void *get_sensor_obj(int pipe)
 		pstSnsObj = &stSnsGMAX2424_Obj;
 		break;
 #endif
+#if defined(SENSOR_SMS_SC535HGS)
+	case V4L2_SMS_SC535HGS_MASTER_MIPI_5M_60FPS_4lane_10BIT:
+	case V4L2_SMS_SC535HGS_SLAVE_MIPI_5M_60FPS_4lane_10BIT:
+		pstSnsObj = &stSnsSC535HGS_Obj;
+		break;
+#endif
 
 #if defined(SENSOR_OV_OS02D10)
 	case V4L2_OV_OS02D10_MIPI_2M_30FPS_10BIT:
@@ -701,7 +707,16 @@ static int get_isp_attr_by_sensor(int pipe, ISP_PUB_ATTR_S *pstPubAttr)
 		pstPubAttr->f32FrameRate = 30;
 		break;
 	case V4L2_GPIXEL_GMAX2424_MIPI_24M_18FPS_10BIT:
-		pstPubAttr->f32FrameRate = 18;
+		/* [FPS-DEBUG] GMAX2424 帧率临时由 18 改为 10，用于验证 4dB 边界 i2c node merge。
+		 * 原值：pstPubAttr->f32FrameRate = 18;
+		 * 恢复方法：把下面的 10 改回 18 即可（10 在 mode [1.47,18] 范围内，
+		 * cmos_fps_set 会自动算 VMAX=4106*18/fps，无需改 sensor init 序列/param.h）。
+		 */
+		pstPubAttr->f32FrameRate = 10;
+		break;
+	case V4L2_SMS_SC535HGS_MASTER_MIPI_5M_60FPS_4lane_10BIT:
+	case V4L2_SMS_SC535HGS_SLAVE_MIPI_5M_60FPS_4lane_10BIT:
+		pstPubAttr->f32FrameRate = 60;
 		break;
 	case V4L2_OV_OS04E10_MIPI_4M_30FPS_2L_10BIT_WDR2TO1:
 	case V4L2_OV_OS04E10_SLAVE_MIPI_4M_30FPS_2L_10BIT_WDR2TO1:
@@ -838,6 +853,7 @@ static int get_isp_attr_by_sensor(int pipe, ISP_PUB_ATTR_S *pstPubAttr)
 	case V4L2_SMS_SC233HGS_MASTER_MIPI_2M_30FPS_4lane_10BIT:
 	case V4L2_SMS_SC233HGS_MASTER_MIPI_2M_60FPS_4lane_12BIT:
 	case V4L2_GPIXEL_GMAX2424_MIPI_24M_18FPS_10BIT:
+	case V4L2_SMS_SC535HGS_MASTER_MIPI_5M_60FPS_4lane_10BIT:
 		pstPubAttr->u8EnableMaster = 1;
 		break;
 	default:
