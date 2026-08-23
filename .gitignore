@@ -1,0 +1,41 @@
+# 编译输出
+build/
+output/
+*.o
+*.ko
+*.mod
+*.mod.c
+*.symvers
+*.order
+*.cmd
+*.d
+*.su
+*.tmp
+*.log
+
+# 中间产物
+*.swp
+*~
+.DS_Store
+
+# 算能sdk产物
+*.bin
+*.img
+*.dtb
+*.dtbo
+
+# 本地环境
+*.local
+config.old
+.config.tmp
+
+# 编译tmp中间产物
+cv186x/*/tmp/
+
+# deb打包输出目录
+cv186x/v4l2_adapter/sophon-soc-libisp*/
+
+# deb安装包
+*.deb
+*.tar.gz
+
