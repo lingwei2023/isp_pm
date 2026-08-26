@@ -69,7 +69,10 @@ static int get_video_frame(int chn)
 	VencCtx[chn].stFrame.stVFrame.u32Stride[1] = VencCtx[chn].buf.width;
 	VencCtx[chn].stFrame.stVFrame.u32Stride[2] = 0;
 
-	ySize = ALIGN(VencCtx[chn].buf.width, 32) * VencCtx[chn].buf.height;
+	/* Y 平面 stride 等于 buf.width(VI 产帧无 32 填充,实测 plane size =
+	 * width×height×3/2)。此处若用 ALIGN(width,32) 会在非对齐宽度(如
+	 * SC535HGS 2448→2464)算错 chroma 偏移,导致编码流颜色错位+底部绿条。 */
+	ySize = VencCtx[chn].buf.width * VencCtx[chn].buf.height;
 
 	VencCtx[chn].stFrame.stVFrame.u64PhyAddr[0] = VencCtx[chn].buf.phy_addr;
 	VencCtx[chn].stFrame.stVFrame.u64PhyAddr[1] =
@@ -124,9 +127,18 @@ static int venc_init(int chn, RTSP_CFG *p_rtsp_cfg)
 	memset(&stPubAttr, 0, sizeof(ISP_PUB_ATTR_S));
 	CVI_ISP_GetPubAttr(chn, &stPubAttr);
 
-	if ((stPubAttr.stWndRect.u32Width % 32) != 0) {
-		ISP_LOG_ERR("error, venc width must be aligned to 32...\n");
-		return -1;
+	/* venc 编码宽度需 32 对齐。sensor 原始宽度可能不对齐(如 SC535HGS
+	 * 2448=32×76+16)。本 daemon 无 VPSS 缩放(VI 直送 venc),编码尺寸若
+	 * 大于输入帧(venc_w > 输入宽度)则 venc 硬件拒绝(CVI_VENC_CreateChn
+	 * 返回 0xc0078003)。故向下取 32 对齐(venc_w <= 输入宽度),venc 内部裁掉
+	 * 右侧多余列。已对齐的 sensor 宽度不受影响。 */
+	CVI_U32 venc_w = stPubAttr.stWndRect.u32Width;
+	CVI_U32 venc_h = stPubAttr.stWndRect.u32Height;
+	if ((venc_w % 32) != 0) {
+		ISP_LOG_ERR("venc width %d not aligned to 32, crop to %d\n",
+			venc_w, venc_w / 32 * 32);
+		venc_w = venc_w / 32 * 32;
+		venc_h = venc_h / 32 * 32;
 	}
 
 	memset(&stChnAttr, 0, sizeof(VENC_CHN_ATTR_S));
@@ -142,10 +154,10 @@ static int venc_init(int chn, RTSP_CFG *p_rtsp_cfg)
 		return -1;
 	}
 
-	stChnAttr.stVencAttr.u32MaxPicWidth = stPubAttr.stWndRect.u32Width;
-	stChnAttr.stVencAttr.u32MaxPicHeight = stPubAttr.stWndRect.u32Height;
-	stChnAttr.stVencAttr.u32PicWidth = stPubAttr.stWndRect.u32Width;
-	stChnAttr.stVencAttr.u32PicHeight = stPubAttr.stWndRect.u32Height;
+	stChnAttr.stVencAttr.u32MaxPicWidth = venc_w;
+	stChnAttr.stVencAttr.u32MaxPicHeight = venc_h;
+	stChnAttr.stVencAttr.u32PicWidth = venc_w;
+	stChnAttr.stVencAttr.u32PicHeight = venc_h;
 	stChnAttr.stVencAttr.u32BufSize = 2 * 1024 * 1024; // TODO
 	stChnAttr.stVencAttr.u32CmdQueueDepth = 3;
 	stChnAttr.stVencAttr.enEncMode = VENC_MODE_RECOMMEND;
