@@ -1,41 +1,11 @@
-# 编译输出
-build/
-output/
+# build artifacts
 *.o
-*.ko
-*.mod
-*.mod.c
-*.symvers
-*.order
-*.cmd
 *.d
-*.su
-*.tmp
-*.log
+*.so
+*.ko
+isp_tool_daemon
 
-# 中间产物
-*.swp
-*~
-.DS_Store
-
-# 算能sdk产物
-*.bin
-*.img
-*.dtb
-*.dtbo
-
-# 本地环境
-*.local
-config.old
-.config.tmp
-
-# 编译tmp中间产物
-cv186x/*/tmp/
-
-# deb打包输出目录
-cv186x/v4l2_adapter/sophon-soc-libisp*/
-
-# deb安装包
-*.deb
-*.tar.gz
-
+# auto generated pq json & header
+common/toolJsonGenerator/pqtool_definition.json
+cv186x/isp-daemon2/json_struct/cvi_pqtool_json.h
+cv186x/isp-daemon2/json_struct/pqtool_definition.json

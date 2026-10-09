@@ -141,8 +141,8 @@ CVI_S32 CVI_AF_Register(VI_PIPE ViPipe, ALG_LIB_S *pstAfLib)
 
 CVI_S32 CVI_AF_UnRegister(VI_PIPE ViPipe, ALG_LIB_S *pstAfLib)
 {
-	AF_CHECK_HANDLE_ID(ViPipe);
-	AF_CHECK_POINTER(pstAfLib);
+	UNUSED(ViPipe);
+	UNUSED(pstAfLib);
 
 	CVI_S32 s32Ret = CVI_SUCCESS;
 
