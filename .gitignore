@@ -9,3 +9,7 @@ isp_tool_daemon
 common/toolJsonGenerator/pqtool_definition.json
 cv186x/isp-daemon2/json_struct/cvi_pqtool_json.h
 cv186x/isp-daemon2/json_struct/pqtool_definition.json
+# deb/tar package
+*.deb
+*.tar.gz
+cv186x/v4l2_adapter/sophon-soc-libisp*/
